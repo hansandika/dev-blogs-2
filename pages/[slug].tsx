@@ -91,7 +91,8 @@ export const getStaticProps: GetStaticProps<StaticPropsResponse, { slug: string 
           id: _id.toString(),
           title, content, meta, slug, tags, thumbnail: thumbnail?.url || '', createdAt: createdAt.toString()
         }
-      }
+      },
+      revalidate: 60
     }
   } catch (error) {
     return {
