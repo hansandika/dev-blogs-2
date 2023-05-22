@@ -1,16 +1,32 @@
-html,
-body {
-  padding: 0;
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Placeholder (at the top) */
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: #adb5bd;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+/*custom scroll css*/
+.custom-scroll-bar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
 }
 
-* {
-  box-sizing: border-box;
+/* Handle */
+.custom-scroll-bar::-webkit-scrollbar-thumb {
+  background: rgb(202, 181, 226);
 }
+
+/* img {
+  max-width: fit-content;
+  width: 100%;
+  height: 100%;
+} */
+
+
+
