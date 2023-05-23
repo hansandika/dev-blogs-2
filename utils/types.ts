@@ -1,14 +1,14 @@
-export interface PostDetail{
+export interface PostDetail {
   id: string;
   title: string;
   meta: string;
   slug: string;
   tags: string[];
   thumbnail?: string;
-  createdAt: string;  
+  createdAt: string;
 }
 
-export interface IncomingPost{
+export interface IncomingPost {
   title: string;
   content: string;
   meta: string;
@@ -17,11 +17,11 @@ export interface IncomingPost{
 }
 
 export interface UserProfile {
-    id: string;
-    name: string;
-    email: string;
-    avatar: string | undefined;
-    role: "user" | "admin";
+  id: string;
+  name: string;
+  email: string;
+  avatar: string | undefined;
+  role: "user" | "admin";
 }
 
 export const userRole = 'user'
@@ -30,3 +30,6 @@ export const githubProvider = 'github'
 export const darkTheme = 'dark'
 export const lightTheme = 'light'
 export const themeMode = 'theme-mode'
+
+export const pageLimit = 5;
+export const pageNoInitial = 1;

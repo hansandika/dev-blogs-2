@@ -1,14 +1,14 @@
 import { GetServerSideProps, InferGetServerSidePropsType, NextPage } from 'next';
 import AdminLayout from '../../../components/layout/AdminLayout';
 import { useState } from 'react';
-import { PostDetail } from '../../../utils/types';
+import { PostDetail, pageLimit, pageNoInitial } from '../../../utils/types';
 import { formatPosts, readPostsFromDb } from '../../../lib/utils';
 import InfiniteScrollPost from '../../../components/common/InfiniteScrollPost';
 import axios from 'axios';
 import { filterPost } from '../../../utils/helper';
 
-let pageNo = 1;
-const limit = 9;
+let pageNo = pageNoInitial;
+const limit = pageLimit;
 
 type Props = InferGetServerSidePropsType<typeof getServerSideProps>
 
@@ -19,11 +19,9 @@ const Admin: NextPage<Props> = ({ posts }) => {
   const fetchMorePosts = async () => {
     try {
       const { data } = await axios.get('/api/posts', { params: { pageNo: pageNo++, limit, skip: postsToRender.length } })
-      console.log(data);
       const { posts } = data;
       if (posts.length < limit) {
         setHasMorePosts(false)
-        return
       }
 
       setPostsToRender([...postsToRender, ...posts]);
