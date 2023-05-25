@@ -1,7 +1,7 @@
-import {Schema, models, model, Model, ObjectId} from 'mongoose'
+import { Schema, models, model, Model } from 'mongoose'
 import { adminRole, githubProvider, userRole } from '../utils/types';
 
-export interface UserModelSchema{
+export interface UserModelSchema {
   name: string;
   email: string;
   role: 'user' | 'admin';
@@ -16,7 +16,7 @@ const UserSchema = new Schema<UserModelSchema>({
   },
   email: {
     type: String,
-    required : true,
+    required: true,
     unique: true
   },
   role: {

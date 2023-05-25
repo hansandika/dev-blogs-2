@@ -1,4 +1,4 @@
-import { signIn, signOut, useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { FC } from 'react';
@@ -40,10 +40,6 @@ const UserNav: FC<Props> = (props): JSX.Element => {
     ...defaultOptions,
   ] : defaultOptions;
 
-  const handleLoginWithGithub = async () => {
-    await signIn('github')
-  }
-
   return <div className='flex items-center justify-between p-3 bg-primary-dark'>
     {/* Logo */}
     <Link href='/' className='flex space-x-2 text-highlight-dark'>
@@ -56,7 +52,7 @@ const UserNav: FC<Props> = (props): JSX.Element => {
         <HiLightBulb size={34} />
       </button>
 
-      {isAuth ? <DropdownOptions options={dropdownOptions} head={<ProfileHead nameInitial='h' lightOnly />} /> : <GithubAuthButton onClick={handleLoginWithGithub} lightOnly />}
+      {isAuth ? <DropdownOptions options={dropdownOptions} head={<ProfileHead nameInitial='h' lightOnly />} /> : <GithubAuthButton lightOnly />}
     </div>
   </div>;
 };

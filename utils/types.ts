@@ -24,6 +24,19 @@ export interface UserProfile {
   role: "user" | "admin";
 }
 
+export type replyComments = CommentResponse[];
+export interface CommentResponse {
+  id: string;
+  content: string;
+  createdAt: string;
+  likes: number;
+  likedByOwner?: boolean;
+  replies?: replyComments;
+  repliedTo?: string;
+  chiefComment: boolean;
+  owner: { name: string, id: string, avatar?: string } | null;
+}
+
 export const userRole = 'user'
 export const adminRole = 'admin'
 export const githubProvider = 'github'
