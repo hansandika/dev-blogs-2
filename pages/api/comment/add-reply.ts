@@ -1,5 +1,5 @@
 import { NextApiHandler } from "next";
-import { isAuth } from "../../../lib/utils";
+import { formatComment, isAuth } from "../../../lib/utils";
 import { commentValidationSchema, validateSchema } from "../../../lib/validator";
 import { dbConnect } from "../../../lib/dbConnect";
 import Comment from "../../../models/Comment";
@@ -49,7 +49,9 @@ const addReplyToComment: NextApiHandler = async (req, res) => {
   }
   await chiefComment.save()
 
-  return res.status(201).json({ message: "Reply Created", replyComment });
+  const formattedReplyComment = await replyComment.populate("owner");
+
+  return res.status(201).json({ message: "Reply Created", comment: formatComment(formattedReplyComment, user) });
 }
 
 export default handler;

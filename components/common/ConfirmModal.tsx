@@ -15,7 +15,7 @@ const commonBtnClass = 'px-3 py-1 text-white rounded'
 
 const ConfirmModal: FC<Props> = ({ title, subtitle, busy = false, onCancel, onConfirm, visible, onClose }): JSX.Element => {
   return <ModalContainer visible={visible} onClose={onClose}>
-    <div className='p-3 rounded bg-primary-dark dark:bg-primary'>
+    <div className='p-3 rounded bg-primary-dark dark:bg-primary max-w-[380px]'>
       {/* Title */}
       <p className='text-lg font-semibold dark:text-primary-dark text-primary'>
         {title}

@@ -6,6 +6,7 @@ const nextConfig = {
       'images.unsplash.com',
       'res.cloudinary.com',
       'media.sproutsocial.com',
+      'avatars.githubusercontent.com',
     ],
   },
 };

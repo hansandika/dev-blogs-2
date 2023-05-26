@@ -1,5 +1,5 @@
 import { NextApiHandler } from "next";
-import { isAuth } from "../../../lib/utils";
+import { formatComment, isAuth } from "../../../lib/utils";
 import { commentValidationSchema, validateSchema } from "../../../lib/validator";
 import { dbConnect } from "../../../lib/dbConnect";
 import Comment from "../../../models/Comment";
@@ -25,7 +25,16 @@ const updateLike: NextApiHandler = async (req, res) => {
   if (!isValidObjectId(commentId)) return res.status(400).json({ message: "Invalid comment ID" });
 
   await dbConnect()
-  const comment = await Comment.findById(commentId)
+  const comment = await Comment.findById(commentId).populate({
+    path: "owner",
+    select: "name avatar"
+  }).populate({
+    path: "replies",
+    populate: {
+      path: "owner",
+      select: "name avatar"
+    }
+  })
 
   if (!comment) return res.status(404).json({ message: "Comment not found" })
 
@@ -44,7 +53,7 @@ const updateLike: NextApiHandler = async (req, res) => {
   }
 
   await comment.save()
-  return res.status(201).json({ message: "Comment Like/dislike updated successfully", comment })
+  return res.status(201).json({ message: "Comment Like/dislike updated successfully", comment: { ...formatComment(comment, user), replies: comment.replies?.map((reply: any) => formatComment(reply, user)) } })
 }
 
 export default handler;

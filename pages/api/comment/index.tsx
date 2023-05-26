@@ -5,6 +5,7 @@ import { dbConnect } from "../../../lib/dbConnect";
 import Post from "../../../models/Post";
 import Comment from "../../../models/Comment";
 import { isValidObjectId } from "mongoose";
+import { CommentResponse } from "../../../utils/types";
 
 const handler: NextApiHandler = (req, res) => {
   const { method } = req;
@@ -26,9 +27,9 @@ const readComments: NextApiHandler = async (req, res) => {
   const user = await isAuth(req, res)
 
   const { belongsTo } = req.query
-  if (!belongsTo || isValidObjectId(belongsTo)) return res.status(400).json({ message: "Invalid post id" });
+  if (!belongsTo || !isValidObjectId(belongsTo.toString())) return res.status(400).json({ message: "Invalid post id" });
 
-  const comment = await Comment.findOne({ belongsTo })
+  const comments = await Comment.find({ belongsTo })
     .populate({
       path: "owner",
       select: "name avatar"
@@ -38,12 +39,18 @@ const readComments: NextApiHandler = async (req, res) => {
         path: "owner",
         select: "name avatar"
       }
-    }).select('likes content repliedTo createdAt')
+    })
 
-  if (!comment) return res.status(404).json({ message: "Comments not found" })
+  if (!comments) return res.status(404).json({ message: "Comments not found" })
 
-  const formattedComment = { ...formatComment(comment, user), replies: comment.replies?.map((reply: any) => formatComment(reply, user)) }
-  return res.status(200).json({ comment: formattedComment });
+  const formattedComment: CommentResponse[] = comments.map((comment: any) => {
+    return {
+      ...formatComment(comment, user),
+      replies: comment.replies?.map((reply: any) => formatComment(reply, user))
+    }
+  })
+
+  return res.status(200).json({ comments: formattedComment });
 }
 
 const createNewComment: NextApiHandler = async (req, res) => {
@@ -68,7 +75,10 @@ const createNewComment: NextApiHandler = async (req, res) => {
   })
 
   await newComment.save()
-  return res.status(201).json({ message: "Comment Created", newComment });
+
+  const commentWithOwner = await newComment.populate('owner')
+
+  return res.status(201).json({ message: "Comment Created", comment: formatComment(commentWithOwner, user) });
 }
 
 const removeComment: NextApiHandler = async (req, res) => {
@@ -76,7 +86,7 @@ const removeComment: NextApiHandler = async (req, res) => {
   if (!user) return res.status(401).json({ message: "Unauthorized Request" });
 
   const { commentId } = req.query;
-  if (!commentId || isValidObjectId(commentId)) return res.status(400).json({ message: "Invalid comment id" });
+  if (!commentId || !isValidObjectId(commentId)) return res.status(400).json({ message: "Invalid comment id" });
 
   const commentToRemoved = await Comment.findOne({ _id: commentId, owner: user.id })
   if (!commentToRemoved) return res.status(404).json({ message: "Comment not found" });
@@ -103,21 +113,21 @@ const updateComment: NextApiHandler = async (req, res) => {
   if (!user) return res.status(401).json({ message: "Unauthorized Request" });
 
   const { commentId } = req.query;
-  if (!commentId || isValidObjectId(commentId)) return res.status(400).json({ message: "Invalid comment id" });
+  if (!commentId || !isValidObjectId(commentId)) return res.status(400).json({ message: "Invalid comment id" });
 
   const { body } = req;
   const error = validateSchema(commentValidationSchema, body)
   if (error) return res.status(400).json({ error });
 
-  const commentToUpdate = await Comment.findOne({ _id: commentId, owner: user.id })
+  const commentToUpdate = await Comment.findOne({ _id: commentId, owner: user.id }).populate('owner').populate('replies')
   if (!commentToUpdate) return res.status(404).json({ message: "Comment not found" });
 
   const { content } = body
 
   commentToUpdate.content = content
   await commentToUpdate.save()
-
-  return res.status(200).json({ message: "Comment updated", commentToUpdate });
+  console.log(formatComment(commentToUpdate, user));
+  return res.status(200).json({ message: "Comment updated", comment: formatComment(commentToUpdate, user) });
 }
 
 export default handler;

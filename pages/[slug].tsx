@@ -5,16 +5,13 @@ import Post from '../models/Post';
 import parse from 'html-react-parser';
 import NextImage from 'next/image';
 import dateFormat from 'dateformat';
-import useAuth from '../hooks/useAuth';
-import CommentForm from '../components/common/CommentForm';
-import { GithubAuthButton } from '../components/button';
+import Comments from '../components/common/Comments';
 
 
 type Props = InferGetStaticPropsType<typeof getStaticProps>
 
 const SinglePost: NextPage<Props> = ({ post }) => {
-  const { title, content, thumbnail, tags, meta, slug, createdAt } = post;
-  const user = useAuth();
+  const { id, title, content, thumbnail, tags, meta, slug, createdAt } = post;
 
   return <DefaultLayout title={title} meta={meta}>
     <div>
@@ -41,13 +38,8 @@ const SinglePost: NextPage<Props> = ({ post }) => {
         {parse(content)}
       </div>
 
-      {/* Comment Form */}
-      <div className="py-20">
-        {user ? <CommentForm title='Add Comment' /> : <div className='flex flex-col items-end space-y-2'>
-          <h3 className='text-xl font-semibold text-secondary-dark'>Log in to add comment</h3>
-          <GithubAuthButton />
-        </div>}
-      </div>
+      {/* Comments */}
+      <Comments belongsTo={id} />
     </div>
   </DefaultLayout>;
 };
