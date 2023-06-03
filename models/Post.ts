@@ -1,12 +1,13 @@
-import {Schema, models, model, Model, ObjectId} from 'mongoose'
+import { Schema, models, model, Model, ObjectId } from 'mongoose'
 
-export interface PostModelSchema{
+export interface PostModelSchema {
   _id: ObjectId,
   title: string,
   slug: string,
   tags: string[],
   content: string,
   meta: string,
+  likes?: ObjectId[],
   thumbnail: {
     url: string,
     public_id: string
@@ -35,20 +36,26 @@ const PostSchema = new Schema<PostModelSchema>({
   tags: {
     type: [String],
   },
-  thumbnail:  {
+  thumbnail: {
     type: Object,
     url: String,
     public_id: String
-  }, 
-  meta : {
+  },
+  meta: {
     type: String,
     required: true,
     trim: true,
   },
-  author : {
+  author: {
     type: Schema.Types.ObjectId,
     ref: 'User'
   },
+  likes: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'User'
+    }
+  ]
 }, {
   timestamps: true
 })

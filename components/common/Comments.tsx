@@ -3,22 +3,31 @@ import CommentForm from './CommentForm';
 import { GithubAuthButton } from '../button';
 import useAuth from '../../hooks/useAuth';
 import axios from 'axios';
-import { CommentResponse } from '../../utils/types';
+import { CommentResponse, pageLimit, pageNoInitial } from '../../utils/types';
 import CommentCard from './CommentCard';
 import ConfirmModal from './ConfirmModal';
+import PageNavigator from './PageNavigator';
 
 interface Props {
-  belongsTo: string
+  belongsTo?: string
+  fetchAll?: boolean
 }
 
-const Comments: FC<Props> = ({ belongsTo }): JSX.Element => {
+const limit = pageLimit
+let pageNo = pageNoInitial
+
+const Comments: FC<Props> = ({ belongsTo, fetchAll }): JSX.Element => {
   const [comments, setComments] = useState<CommentResponse[]>()
   const [showConfirmModal, setShowConfirmModal] = useState(false)
-  const [commentToDelete, setCommentToDelete] = useState<CommentResponse | null>(null)
+  const [reachedToEnd, setReachToEnd] = useState(false)
+  const [selectedComment, setSelectedComment] = useState<CommentResponse | null>(null)
+  const [busyCommentLike, setBusyCommentLike] = useState<boolean>(false)
+  const [busyFormSubmit, setBusyFormSubmit] = useState<boolean>(false)
 
   const user = useAuth();
 
   const handleNewCommentSubmit = async (content: string) => {
+    setBusyFormSubmit(true)
     try {
       const { data } = await axios.post('/api/comment', {
         content,
@@ -29,6 +38,7 @@ const Comments: FC<Props> = ({ belongsTo }): JSX.Element => {
     } catch (error) {
       console.log(error)
     }
+    setBusyFormSubmit(false)
   }
 
   const insertNewReplyComment = (reply: CommentResponse) => {
@@ -99,12 +109,12 @@ const Comments: FC<Props> = ({ belongsTo }): JSX.Element => {
   }
 
   const handleOnDeleteClick = (comment: CommentResponse) => {
-    setCommentToDelete(comment)
+    setSelectedComment(comment)
     setShowConfirmModal(true)
   }
 
   const handleOnDeleteCancel = () => {
-    setCommentToDelete(null)
+    setSelectedComment(null)
     setShowConfirmModal(false)
   }
 
@@ -135,12 +145,12 @@ const Comments: FC<Props> = ({ belongsTo }): JSX.Element => {
   }
 
   const handleOnDeleteConfirm = async () => {
-    if (!commentToDelete) return;
+    if (!selectedComment) return;
     try {
-      await axios.delete(`/api/comment?commentId=${commentToDelete.id}`)
-      updateDeletedComments(commentToDelete)
+      await axios.delete(`/api/comment?commentId=${selectedComment.id}`)
+      updateDeletedComments(selectedComment)
       setShowConfirmModal(false)
-      setCommentToDelete(null)
+      setSelectedComment(null)
     } catch (error) {
       console.log(error);
     }
@@ -179,6 +189,8 @@ const Comments: FC<Props> = ({ belongsTo }): JSX.Element => {
   }
 
   const handleOnLikeClick = async (comment: CommentResponse) => {
+    setBusyCommentLike(true)
+    setSelectedComment(comment)
     try {
       const { data } = await axios.post('/api/comment/update-like', { commentId: comment.id })
       const { comment: updatedComment } = data
@@ -186,10 +198,42 @@ const Comments: FC<Props> = ({ belongsTo }): JSX.Element => {
     } catch (error) {
       console.log(error);
     }
+    setBusyCommentLike(false)
+    setSelectedComment(null)
+  }
+
+  const fetchAllComments = async () => {
+    if (!fetchAll) return
+    try {
+      const { data } = await axios.get('/api/comment/all', { params: { pageNo, limit } })
+      const { comments } = data;
+
+      if (!comments.length) {
+        pageNo--
+        return setReachToEnd(true)
+      }
+      setComments(comments)
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  const handleOnNextClick = async () => {
+    if (reachedToEnd) return;
+    pageNo++
+    fetchAllComments()
+  }
+
+  const handleOnPrevClick = async () => {
+    if (pageNo <= 1) return;
+    if (reachedToEnd) setReachToEnd(false)
+    pageNo--
+    fetchAllComments()
   }
 
   useEffect(() => {
     const fetchComments = async () => {
+      if (!belongsTo) return;
       try {
         const { data } = await axios.get('/api/comment', { params: { belongsTo } })
         const { comments } = data;
@@ -198,11 +242,16 @@ const Comments: FC<Props> = ({ belongsTo }): JSX.Element => {
         console.log(error);
       }
     }
-    fetchComments()
-  }, [belongsTo])
+
+    if (belongsTo) {
+      fetchComments()
+    } else if (fetchAll) {
+      fetchAllComments()
+    }
+  }, [belongsTo, fetchAll])
 
   return <div className="py-20 space-y-4">
-    {user ? <CommentForm onSubmit={handleNewCommentSubmit} title='Add Comment' /> : <div className='flex flex-col items-end space-y-2'>
+    {user ? <CommentForm visible={!fetchAll} onSubmit={!busyFormSubmit ? handleNewCommentSubmit : undefined} title='Add Comment' busy={busyFormSubmit} /> : <div className='flex flex-col items-end space-y-2'>
       <h3 className='text-xl font-semibold text-secondary-dark'>Log in to add comment</h3>
       <GithubAuthButton />
     </div>}
@@ -210,12 +259,12 @@ const Comments: FC<Props> = ({ belongsTo }): JSX.Element => {
     {comments?.map((comment) => {
       const { id, replies } = comment;
       return (<div key={id}>
-        <CommentCard showControls={user?.id === comment.owner.id} comment={comment} onReplySubmit={(content) => {
+        <CommentCard showControls={user?.id === comment.owner.id} busy={selectedComment?.id === comment.id && busyCommentLike} comment={comment} onReplySubmit={(content) => {
           handleReplySubmit({ content, repliedTo: id })
         }} onUpdateSubmit={(content) => {
           handleUpdateSubmit(content, comment.id)
         }} onDeleteClick={() => handleOnDeleteClick(comment)}
-          onLikeClick={() => handleOnLikeClick(comment)}
+          onLikeClick={() => (selectedComment?.id === comment.id) ? undefined : handleOnLikeClick(comment)}
         />
 
         {replies && replies?.length > 0 && (
@@ -223,12 +272,12 @@ const Comments: FC<Props> = ({ belongsTo }): JSX.Element => {
             <h1 className='mb-3 text-seconday-dark'>Replies</h1>
             {replies.map((reply) => {
               return (
-                <CommentCard key={reply.id} comment={reply} showControls={user?.id === reply.owner.id} onReplySubmit={(content) => {
+                <CommentCard key={reply.id} comment={reply} busy={selectedComment?.id === reply.id && busyCommentLike} showControls={user?.id === reply.owner.id} onReplySubmit={(content) => {
                   handleReplySubmit({ content, repliedTo: id })
                 }} onUpdateSubmit={(content) => {
                   handleUpdateSubmit(content, reply.id)
                 }} onDeleteClick={() => handleOnDeleteClick(reply)}
-                  onLikeClick={() => handleOnLikeClick(reply)}
+                  onLikeClick={(selectedComment?.id === reply.id) ? undefined : () => handleOnLikeClick(reply)}
                 />
               )
             })}
@@ -236,6 +285,10 @@ const Comments: FC<Props> = ({ belongsTo }): JSX.Element => {
         )}
       </div>)
     })}
+
+    {fetchAll && <div className="flex justify-end py-10">
+      <PageNavigator onNextClick={handleOnNextClick} onPrevClick={handleOnPrevClick} />
+    </div>}
 
     <ConfirmModal visible={showConfirmModal} title='Are you sure?' subtitle='This action will remove this comment and replies if this is chief comment!' onCancel={handleOnDeleteCancel} onConfirm={handleOnDeleteConfirm} />
   </div>;

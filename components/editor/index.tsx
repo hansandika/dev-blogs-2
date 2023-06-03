@@ -76,10 +76,8 @@ const Editor: FC<Props> = ({ initialValue, btnTitle = 'Submit', busy = false, on
         placeholder: 'Type Something..',
       }),
       Youtube.configure({
-        width: 840,
-        height: 472.5,
         HTMLAttributes: {
-          class: 'mx-auto rounded',
+          class: 'w-full aspect-video',
         }
       }),
       TipTapImage.configure({

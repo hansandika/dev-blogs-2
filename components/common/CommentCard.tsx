@@ -6,6 +6,7 @@ import { BsFillReplyAllFill, BsFillTrashFill, BsPencilSquare } from 'react-icons
 import CommentForm from './CommentForm';
 import { CommentResponse } from '../../utils/types';
 import LikeHeart from './LikeHeart';
+import { getFirstLetter } from '../../utils/helper';
 
 
 interface Props {
@@ -15,9 +16,10 @@ interface Props {
   onReplySubmit?(content: string): void;
   onDeleteClick?(): void;
   onLikeClick?(): void;
+  busy?: boolean;
 }
 
-const CommentCard: FC<Props> = ({ comment, showControls = false, onUpdateSubmit, onReplySubmit, onDeleteClick, onLikeClick }): JSX.Element => {
+const CommentCard: FC<Props> = ({ comment, showControls = false, busy = false, onUpdateSubmit, onReplySubmit, onDeleteClick, onLikeClick }): JSX.Element => {
   const { owner, content, createdAt, likedByOwner, likes } = comment
   const [showForm, setShowForm] = useState(false)
   const { name, avatar } = owner
@@ -52,7 +54,7 @@ const CommentCard: FC<Props> = ({ comment, showControls = false, onUpdateSubmit,
   }
 
   return <div className='flex space-x-3'>
-    <ProfileIcon nameInitial={name[0].toUpperCase()} avatar={avatar} />
+    <ProfileIcon nameInitial={getFirstLetter(name)} avatar={avatar} />
 
     <div className="flex-1">
       <h1 className='text-lg font-semibold text-primary-dark dark:text-primary'>{name}</h1>
@@ -64,7 +66,7 @@ const CommentCard: FC<Props> = ({ comment, showControls = false, onUpdateSubmit,
       </div>
 
       <div className="flex space-x-4">
-        <LikeHeart liked={likedByOwner} label={`${likes} likes`} onClick={onLikeClick} />
+        <LikeHeart liked={likedByOwner} label={`${likes} likes`} onClick={onLikeClick} busy={busy} />
         <Button onClick={handleOnReplyClick}>
           <BsFillReplyAllFill />
           <span>Reply</span>
@@ -96,7 +98,7 @@ interface ButtonProps {
 }
 
 const Button: FC<ButtonProps> = ({ children, onClick }) => {
-  return <button onClick={onClick} className='flex items-center space-x-2 ttext-primary-dark dark:text-primary'>
+  return <button onClick={onClick} className='flex items-center space-x-2 text-primary-dark dark:text-primary'>
     {children}
   </button>
 }

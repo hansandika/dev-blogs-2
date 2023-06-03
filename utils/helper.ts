@@ -16,3 +16,18 @@ export const generateFormData = (post: FinalPost) => {
 export const filterPost = (posts: PostDetail[], postToFilter: PostDetail) => {
   return posts.filter((post) => post.id !== postToFilter.id)
 }
+
+export const trimText = (text: string, trimBy: number) => {
+  if (text.length > trimBy) {
+    return `${text.substring(0, trimBy).trim()}...`;
+  }
+  return text;
+}
+
+export const getFirstLetter = (text?: string) => {
+  return (text) ? text[0].toUpperCase() : ''
+}
+
+export const getFirstName = (name?: string) => {
+  return (name) ? name.split(' ')[0] : ''
+}

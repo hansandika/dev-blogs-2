@@ -55,7 +55,7 @@ const InfiniteScrollPost: FC<Props> = ({ posts, showControls, hasMore, next, dat
   return <>
     <InfiniteScroll hasMore={hasMore} next={next} dataLength={dataLength} loader={loader || defaultLoader}>
       <div className="max-w-4xl p-3 mx-auto">
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
           {posts.map((post) => (
             <PostCard post={post} key={post.slug} controls={showControls} busy={post.id === postToRemove?.id && removing} onDeleteClick={() => {
               handleOnDeleteClick(post);
