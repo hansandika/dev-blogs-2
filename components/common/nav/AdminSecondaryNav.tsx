@@ -36,9 +36,14 @@ const AdminSecondaryNav: FC<Props> = (props): JSX.Element => {
     }
   ]
 
+  const handleSearchSubmit = (search: string) => {
+    if (!search.trim()) return;
+    router.push(`/admin/search?title=${search}`)
+  }
+
   return <div className='flex items-center justify-between'>
     {/* Search Bar */}
-    <SearchBar />
+    <SearchBar onSubmit={handleSearchSubmit} />
     {/* Profile Head */}
     <DropdownOptions head={<ProfileHead nameInitial='H' />} options={options} />
   </div>;
